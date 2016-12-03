@@ -1,0 +1,11 @@
+<div id="messages"></div>
+<input id="chat-input" type="text"/>
+
+<!--div id='message-list' class='row'>
+</div>
+
+<div class='row form-group'>
+    <div class='col-md-12'>
+        <input type='text' id='message' class='form-control' placeholder='Message' />
+    </div>
+</div--!>
