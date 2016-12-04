@@ -21,7 +21,8 @@ defmodule Webchat.RoomChannel do
     #broadcast! socket, "new_msg", ChannelHandler.process(pid, body)
     #broadcast! socket, "service", ChannelHandler.process(pid, body)
     case ChannelHandler.process(pid, body) do
-      {:chat, json} -> broadcast! socket, "new_msg", json
+      {:message, json} -> broadcast! socket, "new_msg", json
+      {:self, json} -> push socket, "self", json
       {_, json} -> broadcast! socket, "service", json
     end
     {:noreply, socket}
@@ -36,6 +37,9 @@ defmodule Webchat.RoomChannel do
 
   def handle_info({:register, msg}, socket) do
     Logger.info "handle_info register"
+    pid = inspect(socket.channel_pid)
+
+    Users.register(pid)
 #    broadcast! socket, "user:entered", %{user: msg["user"]}
 #    push socket, "join", %{status: "connected"}
     {:noreply, socket}

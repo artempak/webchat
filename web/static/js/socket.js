@@ -82,7 +82,7 @@ let chatInput         = document.querySelector("#chat-input")
 let messagesContainer = document.querySelector("#messages")
 
 chatInput.addEventListener("keypress", event => {
-  if(event.keyCode === 13){
+  if(event.keyCode === 13 && chatInput.value != ""){
     channel.push("new_msg", {body: chatInput.value})
     chatInput.value = ""
   }
@@ -91,19 +91,25 @@ chatInput.addEventListener("keypress", event => {
 channel.on("new_msg", payload => {
   let messageItem = document.createElement("li");
   let longMsg = `${payload.long_msg}`
-  let timestamp = `${payload.timestamp}`
 
   console.log("DEBUG", longMsg)
 
   if (longMsg == 1)
-    messageItem.innerText = `[${Date(timestamp)}] ${payload.text} [cut. message too long]`
+    messageItem.innerText = `[${Date(payload.timestamp)}] ${payload.from}: ${payload.text} [cut. message too long]`
   else
-    messageItem.innerText = `[${Date(timestamp)}] ${payload.text}`
+    messageItem.innerText = `[${Date(payload.timestamp)}] ${payload.from}: ${payload.text}`
 
   messagesContainer.appendChild(messageItem)
 })
 
 channel.on("service", payload => {
+  let messageItem = document.createElement("li");
+
+  messageItem.innerText = `${payload.text}`
+  messagesContainer.appendChild(messageItem)
+})
+
+channel.on("self", payload => {
   let messageItem = document.createElement("li");
 
   messageItem.innerText = `${payload.text}`

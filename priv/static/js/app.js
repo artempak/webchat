@@ -1561,7 +1561,7 @@ var chatInput = document.querySelector("#chat-input");
 var messagesContainer = document.querySelector("#messages");
 
 chatInput.addEventListener("keypress", function (event) {
-  if (event.keyCode === 13) {
+  if (event.keyCode === 13 && chatInput.value != "") {
     channel.push("new_msg", { body: chatInput.value });
     chatInput.value = "";
   }
@@ -1570,16 +1570,22 @@ chatInput.addEventListener("keypress", function (event) {
 channel.on("new_msg", function (payload) {
   var messageItem = document.createElement("li");
   var longMsg = "" + payload.long_msg;
-  var timestamp = "" + payload.timestamp;
 
   console.log("DEBUG", longMsg);
 
-  if (longMsg == 1) messageItem.innerText = "[" + Date(timestamp) + "] " + payload.text + " [cut. message too long]";else messageItem.innerText = "[" + Date(timestamp) + "] " + payload.text;
+  if (longMsg == 1) messageItem.innerText = "[" + Date(payload.timestamp) + "] " + payload.from + ": " + payload.text + " [cut. message too long]";else messageItem.innerText = "[" + Date(payload.timestamp) + "] " + payload.from + ": " + payload.text;
 
   messagesContainer.appendChild(messageItem);
 });
 
 channel.on("service", function (payload) {
+  var messageItem = document.createElement("li");
+
+  messageItem.innerText = "" + payload.text;
+  messagesContainer.appendChild(messageItem);
+});
+
+channel.on("self", function (payload) {
   var messageItem = document.createElement("li");
 
   messageItem.innerText = "" + payload.text;
