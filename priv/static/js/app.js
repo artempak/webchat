@@ -1575,6 +1575,9 @@ channel.on("service", function (payload) {
 channel.on("self", function (payload) {
   var messageItem = document.createElement("li");
 
+  var kick = "" + payload.kick;
+  if (Boolean(kick)) socket.disconnect();
+
   messageItem.innerText = "" + payload.message;
   messagesContainer.appendChild(messageItem);
 });

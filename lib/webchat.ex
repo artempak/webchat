@@ -7,6 +7,7 @@ defmodule Webchat do
     import Supervisor.Spec
 
     Users.init()
+    ProfanityFilter.init()
 
     # Define workers and child supervisors to be supervised
     children = [

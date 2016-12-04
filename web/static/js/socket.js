@@ -97,6 +97,10 @@ channel.on("service", payload => {
 channel.on("self", payload => {
   let messageItem = document.createElement("li");
 
+  let kick = `${payload.kick}`
+  if (Boolean(kick))
+    socket.disconnect()
+
   messageItem.innerText = `${payload.message}`
   messagesContainer.appendChild(messageItem)
 })
