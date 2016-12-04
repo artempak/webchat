@@ -1482,19 +1482,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _phoenix = require("phoenix");
 
-function getCookie(cname) {
-  var name = cname + "=";
-  var ca = document.cookie.split(';');
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
+function showDT(ts) {
+  var dt = new Date(Number(ts) * 1000);
+  return dt.toString();
 } // NOTE: The contents of this file will only be executed if
 // you uncomment its entry in "web/static/js/app.js".
 
@@ -1551,9 +1541,6 @@ var socket = new _phoenix.Socket("/socket", { params: { token: window.userToken 
 
 socket.connect();
 
-var userId = getCookie("userId");
-var nickName = getCookie("nickName");
-
 // Now that you are connected, you can join channels with a topic:
 var channel = socket.channel("room:lobby", {});
 
@@ -1571,9 +1558,9 @@ channel.on("new_msg", function (payload) {
   var messageItem = document.createElement("li");
   var longMsg = "" + payload.long_msg;
 
-  console.log("DEBUG", longMsg);
+  var ts = "" + payload.timestamp;
 
-  if (longMsg == 1) messageItem.innerText = "[" + Date(payload.timestamp) + "] " + payload.from + ": " + payload.text + " [cut. message too long]";else messageItem.innerText = "[" + Date(payload.timestamp) + "] " + payload.from + ": " + payload.text;
+  if (longMsg == 1) messageItem.innerText = "[" + showDT(ts) + "] " + payload.from + ": " + payload.message + " [cut. message too long]";else messageItem.innerText = "[" + showDT(ts) + "] " + payload.from + ": " + payload.message;
 
   messagesContainer.appendChild(messageItem);
 });
@@ -1581,14 +1568,14 @@ channel.on("new_msg", function (payload) {
 channel.on("service", function (payload) {
   var messageItem = document.createElement("li");
 
-  messageItem.innerText = "" + payload.text;
+  messageItem.innerText = "" + payload.message;
   messagesContainer.appendChild(messageItem);
 });
 
 channel.on("self", function (payload) {
   var messageItem = document.createElement("li");
 
-  messageItem.innerText = "" + payload.text;
+  messageItem.innerText = "" + payload.message;
   messagesContainer.appendChild(messageItem);
 });
 

@@ -5,6 +5,14 @@
 # is restricted to this project.
 use Mix.Config
 
+config :webchat, Webchat.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "webchat_repo",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost"
+
+
 # General application configuration
 config :webchat,
   ecto_repos: [Webchat.Repo]

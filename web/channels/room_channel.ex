@@ -4,7 +4,7 @@ defmodule Webchat.RoomChannel do
 
   def join("room:lobby", message, socket) do
     pid = inspect(socket.channel_pid)
-    Logger.info "New user joined chat room: #{pid}"
+    Logger.info "New user joined chat room: #{pid} #{:os.system_time(:milli_seconds)}"
 
     send(self, {:register, message})
 
@@ -42,6 +42,10 @@ defmodule Webchat.RoomChannel do
     Users.register(pid)
 #    broadcast! socket, "user:entered", %{user: msg["user"]}
 #    push socket, "join", %{status: "connected"}
+
+#    Message.history()
+    ChannelHandler.push_history(socket)
+
     {:noreply, socket}
   end
 end

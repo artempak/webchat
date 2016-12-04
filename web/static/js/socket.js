@@ -5,22 +5,10 @@
 // and connect at the socket path in "lib/my_app/endpoint.ex":
 import {Socket} from "phoenix"
 
-
-function getCookie(cname) {
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i = 0; i <ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0)==' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length,c.length);
-        }
-    }
-    return "";
+function showDT(ts) {
+    var dt = new Date(Number(ts)*1000);
+    return dt.toString();
 }
-
 
 let socket = new Socket("/socket", {params: {token: window.userToken}})
 
@@ -72,9 +60,6 @@ let socket = new Socket("/socket", {params: {token: window.userToken}})
 socket.connect()
 
 
-let userId = getCookie("userId")
-let nickName = getCookie("nickName")
-
 // Now that you are connected, you can join channels with a topic:
 let channel = socket.channel("room:lobby", {})
 
@@ -92,12 +77,12 @@ channel.on("new_msg", payload => {
   let messageItem = document.createElement("li");
   let longMsg = `${payload.long_msg}`
 
-  console.log("DEBUG", longMsg)
+  let ts = `${payload.timestamp}`
 
   if (longMsg == 1)
-    messageItem.innerText = `[${Date(payload.timestamp)}] ${payload.from}: ${payload.text} [cut. message too long]`
+    messageItem.innerText = `[${showDT(ts)}] ${payload.from}: ${payload.message} [cut. message too long]`
   else
-    messageItem.innerText = `[${Date(payload.timestamp)}] ${payload.from}: ${payload.text}`
+    messageItem.innerText = `[${showDT(ts)}] ${payload.from}: ${payload.message}`
 
   messagesContainer.appendChild(messageItem)
 })
@@ -105,14 +90,14 @@ channel.on("new_msg", payload => {
 channel.on("service", payload => {
   let messageItem = document.createElement("li");
 
-  messageItem.innerText = `${payload.text}`
+  messageItem.innerText = `${payload.message}`
   messagesContainer.appendChild(messageItem)
 })
 
 channel.on("self", payload => {
   let messageItem = document.createElement("li");
 
-  messageItem.innerText = `${payload.text}`
+  messageItem.innerText = `${payload.message}`
   messagesContainer.appendChild(messageItem)
 })
 
