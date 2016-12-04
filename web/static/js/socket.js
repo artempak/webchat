@@ -90,7 +90,23 @@ chatInput.addEventListener("keypress", event => {
 
 channel.on("new_msg", payload => {
   let messageItem = document.createElement("li");
-  messageItem.innerText = `[${Date()}] ${payload.body}`
+  let longMsg = `${payload.long_msg}`
+  let timestamp = `${payload.timestamp}`
+
+  console.log("DEBUG", longMsg)
+
+  if (longMsg == 1)
+    messageItem.innerText = `[${Date(timestamp)}] ${payload.text} [cut. message too long]`
+  else
+    messageItem.innerText = `[${Date(timestamp)}] ${payload.text}`
+
+  messagesContainer.appendChild(messageItem)
+})
+
+channel.on("service", payload => {
+  let messageItem = document.createElement("li");
+
+  messageItem.innerText = `${payload.text}`
   messagesContainer.appendChild(messageItem)
 })
 
