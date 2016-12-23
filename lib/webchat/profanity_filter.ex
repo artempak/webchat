@@ -1,28 +1,61 @@
 defmodule ProfanityFilter do
 
+  @kick_prob 0.1
   @profane_words ["shit", "fuck", "чёрт"]
 
   def init() do
-    :random.seed(:os.timestamp)
+    :rand.seed(:exs1024)
   end
 
-  def filter(pid, message) do
+  def filter(message) do
     words = String.split(message, [" ", ",", ".", ";", ":"], trim: true)
 
     case check_words(words) do
-      {:profane, word} -> if 0.1 >= :random.uniform, do: :kick, else: :pass
+      {:profane, _word} -> if 0.1 >= :rand.uniform, do: :kick, else: :pass
       _ -> :pass
     end
   end
 
-  def check_words([]) do
+  defp check_words([]) do
     {:ok, ""}
   end
 
-  def check_words([word|rest]) do
+  defp check_words([word|rest]) do
     cond do
       word in @profane_words -> {:profane, word}
       :true -> check_words(rest)
     end
+  end
+
+  defp check_words([], []), do: {:ok, []}
+
+  defp check_words([], filter_acc) when length(filter_acc) > 0, do: {:profane, filter_acc}
+
+  defp check_words([word | rest], filter_acc) do
+    if word in @profane_words do
+      check_words(rest, [word | filter_acc])
+    else
+      check_words(rest, filter_acc)
+    end
+  end
+
+  def filter2(message) do
+    words = String.split(message, [" ", ",", ".", ";", ":"], trim: true)
+
+    case check_words(words, []) do
+      {:profane, filter_acc} ->
+        if @kick_prob >= :rand.uniform do 
+          {:kick, "You have been kicked!"}
+        else
+          {:filter, replace_profane_words(message, filter_acc)}
+        end
+      {:ok, _} -> {:pass, message}
+    end
+  end
+
+  defp replace_profane_words(message, []), do: message
+
+  defp replace_profane_words(message, [word | rest]) do
+    replace_profane_words(String.replace(message, word, "*****"), rest)
   end
 end

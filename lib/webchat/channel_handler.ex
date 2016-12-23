@@ -2,24 +2,33 @@ defmodule ChannelHandler do
   use Phoenix.Channel
   require Logger
 
+  def process2(pid, body) do
+    case ProfanityFilter.filter2(body) do
+      {:pass, message} -> 
+    end
+  end
+
   def process(pid, body) do
     Logger.info "body: #{body}"
 
-    case ProfanityFilter.filter(pid, body) do
+    case ProfanityFilter.filter(body) do
       :pass ->
         [head | rest] = String.split(body, " ", trim: true)
 
-        case String.to_atom(head) do
-          :help -> {:self, prepare_info("-=*** Webchat application, powered by Phoenix ***=-")}
-          :setnick when length(rest) > 0 ->
-            former = Users.get(pid)
-            case Users.setnick(pid, hd(rest)) do
-              :true -> {:service, prepare_info("#{former} has changed nickname to #{hd(rest)}")}
-              _ -> {:self, prepare_info("Nickname change failed")}
-            end
-          :setnick -> {:self, prepare_info("Argument error")}
-          _ -> {:message, persist_message(pid, body)}
-        end
+        {:message, persist_message(pid, body)}
+
+
+#        case String.to_atom(head) do
+#          :help -> {:self, prepare_info("-=*** Webchat application, powered by Phoenix ***=-")}
+#          :setnick when length(rest) > 0 ->
+#            former = Users.get(pid)
+#            case Users.setnick(pid, hd(rest)) do
+#              :true -> {:service, prepare_info("#{former} has changed nickname to #{hd(rest)}")}
+#              _ -> {:self, prepare_info("Nickname change failed")}
+#            end
+#          :setnick -> {:self, prepare_info("Argument error")}
+#          _ -> {:message, persist_message(pid, body)}
+#        end
       _ -> {:kick, %{kick: :true, message: "You have been kicked"}}
     end
   end

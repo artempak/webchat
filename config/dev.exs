@@ -36,8 +36,8 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :webchat, Webchat.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "erlang",
-  password: "erlang",
+  username: "postgres",
+  password: "postgres",
   database: "webchat_dev",
   hostname: "localhost",
   pool_size: 10
