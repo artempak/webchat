@@ -3,9 +3,24 @@ defmodule ChannelHandler do
   require Logger
 
   def process2(pid, body) do
-    case ProfanityFilter.filter2(body) do
-      {:pass, message} -> 
+
+    case ChatCommand.evaluate(body) do
+      {:message, message} ->
+        case ProfanityFilter.filter2(body) do
+          {:pass, message} ->
+            bundle = prepare_message(message)
+            persist_message(pid, bundle)
+            {:message, bundle}
+          {:filter, message} ->
+            bundle = prepare_message(message)
+            persist_message(pid, body)
+            {:message, message}
+          {:kick, message} ->
+            {:kick, %{kick: :true, message: message}}
+        end
+      {res, message} -> {res, message}
     end
+
   end
 
   def process(pid, body) do
@@ -37,6 +52,16 @@ defmodule ChannelHandler do
     %{message: text}
   end
 
+  def prepare_message(text) do
+    message_limit = 20
+    nickname = Users.get(pid)
+    Logger.info "message from nickname: #{nickname}"
+
+    {msg, is_long} = if String.length(body) > message_limit, do: {String.slice(body, 0..message_limit-1), 1}, else: {body, 0}
+
+    %{from: nickname, timestamp: :os.system_time(:seconds), long_msg: is_long, message: msg}
+  end
+
   def persist_message(pid, body) do
     message_limit = 20
     nickname = Users.get(pid)
@@ -56,6 +81,7 @@ defmodule ChannelHandler do
   end
 
   def push_history(socket) do
+    Logger.info "push history PID=#{inspect(self())}"
     history = Message.history()
     cond do
       length(history) == 0 -> :ok

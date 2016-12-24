@@ -33,7 +33,6 @@ defmodule Users do
 
     def is_taken(nickname) do
       result = :ets.match(:users, {:"$1", nickname})
-      Logger.info "result: #{result} len: #{length(result)}"
       cond do
         length(result) > 0 -> :true
         :ok -> :false
