@@ -2,62 +2,38 @@ defmodule ChannelHandler do
   use Phoenix.Channel
   require Logger
 
-  def process2(pid, body) do
+  @message_limit 20
+
+  def process(pid, body) do
 
     case ChatCommand.evaluate(body) do
       {:message, message} ->
-        case ProfanityFilter.filter2(body) do
+        case ProfanityFilter.filter(body) do
           {:pass, message} ->
-            bundle = prepare_message(message)
-            persist_message(pid, bundle)
+            bundle = prepare_message(pid, message)
+#            persist_message(pid, bundle)
             {:message, bundle}
           {:filter, message} ->
-            bundle = prepare_message(message)
-            persist_message(pid, body)
-            {:message, message}
+            bundle = prepare_message(pid, message)
+#            persist_message(pid, body)
+            {:message, bundle}
           {:kick, message} ->
             {:kick, %{kick: :true, message: message}}
         end
-      {res, message} -> {res, message}
+      {res, message} -> {res, prepare_info(message)}
     end
 
-  end
-
-  def process(pid, body) do
-    Logger.info "body: #{body}"
-
-    case ProfanityFilter.filter(body) do
-      :pass ->
-        [head | rest] = String.split(body, " ", trim: true)
-
-        {:message, persist_message(pid, body)}
-
-
-#        case String.to_atom(head) do
-#          :help -> {:self, prepare_info("-=*** Webchat application, powered by Phoenix ***=-")}
-#          :setnick when length(rest) > 0 ->
-#            former = Users.get(pid)
-#            case Users.setnick(pid, hd(rest)) do
-#              :true -> {:service, prepare_info("#{former} has changed nickname to #{hd(rest)}")}
-#              _ -> {:self, prepare_info("Nickname change failed")}
-#            end
-#          :setnick -> {:self, prepare_info("Argument error")}
-#          _ -> {:message, persist_message(pid, body)}
-#        end
-      _ -> {:kick, %{kick: :true, message: "You have been kicked"}}
-    end
   end
 
   def prepare_info(text) do
     %{message: text}
   end
 
-  def prepare_message(text) do
-    message_limit = 20
+  def prepare_message(pid, text) do
     nickname = Users.get(pid)
     Logger.info "message from nickname: #{nickname}"
 
-    {msg, is_long} = if String.length(body) > message_limit, do: {String.slice(body, 0..message_limit-1), 1}, else: {body, 0}
+    {msg, is_long} = if String.length(text) > @message_limit, do: {String.slice(text, 0..@message_limit-1), 1}, else: {text, 0}
 
     %{from: nickname, timestamp: :os.system_time(:seconds), long_msg: is_long, message: msg}
   end

@@ -7,26 +7,6 @@ defmodule ProfanityFilter do
     :rand.seed(:exs1024)
   end
 
-  def filter(message) do
-    words = String.split(message, [" ", ",", ".", ";", ":"], trim: true)
-
-    case check_words(words) do
-      {:profane, _word} -> if 0.1 >= :rand.uniform, do: :kick, else: :pass
-      _ -> :pass
-    end
-  end
-
-  defp check_words([]) do
-    {:ok, ""}
-  end
-
-  defp check_words([word|rest]) do
-    cond do
-      word in @profane_words -> {:profane, word}
-      :true -> check_words(rest)
-    end
-  end
-
   defp check_words([], []), do: {:ok, []}
 
   defp check_words([], filter_acc) when length(filter_acc) > 0, do: {:profane, filter_acc}
@@ -39,7 +19,7 @@ defmodule ProfanityFilter do
     end
   end
 
-  def filter2(message) do
+  def filter(message) do
     words = String.split(message, [" ", ",", ".", ";", ":"], trim: true)
 
     case check_words(words, []) do

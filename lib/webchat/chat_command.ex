@@ -10,9 +10,8 @@ defmodule ChatCommand do
   def evaluate(text) do
     [head | rest] = String.split(text, " ", trim: true)
 
-    unless head in @commands, do: {:message, text}
-
     cond do
+      not head in @commands -> {:message, text}
       head == <<"help">> -> ChatCommand.Help.handle(self(), rest)
       head == <<"setnick">> -> ChatCommand.Setnick.handle(self(), rest)
       :true -> {:self, "Unknown command"}
