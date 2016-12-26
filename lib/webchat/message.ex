@@ -22,11 +22,13 @@ defmodule Message do
   def history() do
     query = from m in Message,
         select: m, limit: 10, order_by: [desc: m.timestamp]
-
     Webchat.Repo.all(query)
   end
 
   def persist(bundle) do
-    Webchat.Repo.insert(changeset(%Message{}, bundle))
+    case Webchat.Repo.insert(changeset(%Message{}, bundle)) do
+      {:ok, _} -> :ok
+      {:error, _} -> Logger.error "Error saving message", :error
+    end
   end
 end
