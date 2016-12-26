@@ -26,4 +26,7 @@ defmodule Message do
     Webchat.Repo.all(query)
   end
 
+  def persist(bundle) do
+    Webchat.Repo.insert(changeset(%Message{}, bundle))
+  end
 end

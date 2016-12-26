@@ -1,28 +1,26 @@
 defmodule ChannelHandler do
-  use Phoenix.Channel
   require Logger
 
   @message_limit 20
 
   def process(pid, body) do
-
-    case ChatCommand.evaluate(body) do
-      {:message, message} ->
-        case ProfanityFilter.filter(body) do
-          {:pass, message} ->
-            bundle = prepare_message(pid, message)
-#            persist_message(pid, bundle)
-            {:message, bundle}
-          {:filter, message} ->
-            bundle = prepare_message(pid, message)
-#            persist_message(pid, body)
-            {:message, bundle}
+    case ChatCommand.evaluate(pid, body) do
+      {:message} ->
+        case ProfanityFilter.evaluate(body) do
           {:kick, message} ->
             {:kick, %{kick: :true, message: message}}
+          {:filter, message} ->
+            bundle = prepare_message(pid, message)
+            original = prepare_message(pid, body)
+            Message.persist(original)
+            {:message, bundle}  
+          {_, message} ->
+            bundle = prepare_message(pid, message)
+            Message.persist(bundle)
+            {:message, bundle}
         end
       {res, message} -> {res, prepare_info(message)}
     end
-
   end
 
   def prepare_info(text) do
@@ -38,24 +36,6 @@ defmodule ChannelHandler do
     %{from: nickname, timestamp: :os.system_time(:seconds), long_msg: is_long, message: msg}
   end
 
-  def persist_message(pid, body) do
-    message_limit = 20
-    nickname = Users.get(pid)
-    Logger.info "message from nickname: #{nickname}"
-
-    {msg, is_long} = if String.length(body) > message_limit, do: {String.slice(body, 0..message_limit-1), 1}, else: {body, 0}
-
-    json = %{from: nickname, timestamp: :os.system_time(:seconds), long_msg: is_long, message: msg}
-
-    changeset = Message.changeset(%Message{}, json)
-
-    case Webchat.Repo.insert(changeset) do
-      {:ok, model}        -> json
-      {:error, changeset} -> json
-    end
-#    json
-  end
-
   def push_history(socket) do
     Logger.info "push history PID=#{inspect(self())}"
     history = Message.history()
@@ -65,13 +45,13 @@ defmodule ChannelHandler do
     end
   end
 
-  def push_single_message(socket, []) do
+  defp push_single_message(_socket, []) do
     :ok
   end
 
-  def push_single_message(socket, [msg|rest]) do
+  defp push_single_message(socket, [msg | rest]) do
     %{from: nickname, long_msg: long_msg, message: message, timestamp: timestamp} = msg
-    push socket, "new_msg", %{from: nickname, long_msg: long_msg, message: message, timestamp: timestamp}
+    Phoenix.Channel.push socket, "new_msg", %{from: nickname, long_msg: long_msg, message: ProfanityFilter.filter(message), timestamp: timestamp}
     push_single_message(socket, rest)
   end
 end

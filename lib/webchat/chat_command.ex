@@ -1,19 +1,14 @@
 defmodule ChatCommand do
-  require Logger
 
   @commands ["help", "setnick"]
 
-  def init() do
-    Users.init()
-  end
-
-  def evaluate(text) do
+  def evaluate(pid, text) do
     [head | rest] = String.split(text, " ", trim: true)
 
     cond do
-      not head in @commands -> {:message, text}
-      head == <<"help">> -> ChatCommand.Help.handle(self(), rest)
-      head == <<"setnick">> -> ChatCommand.Setnick.handle(self(), rest)
+      not head in @commands -> {:message}
+      head == <<"help">> -> ChatCommand.Help.handle(pid, rest)
+      head == <<"setnick">> -> ChatCommand.Setnick.handle(pid, rest)
       :true -> {:self, "Unknown command"}
     end
   end
@@ -37,7 +32,7 @@ defmodule ChatCommand do
     def handle(pid, args) when length(args) == 1 do
       oldnick = Users.get(pid)
       newnick = hd(args)
-      Logger.info "handle(#{inspect(pid)}, #{inspect(newnick)})              oldnick = #{inspect(oldnick)}"
+
       case Users.setnick(pid, newnick) do
         :true -> {:service, "#{oldnick} has changed nickname to #{newnick}"}
         _ -> {:self, "Nickname change failed"}
@@ -47,6 +42,5 @@ defmodule ChatCommand do
     def handle(_uid, _args) do
       {:self, info}
     end
-
   end
 end
